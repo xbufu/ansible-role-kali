@@ -1,7 +1,7 @@
 ---
 - name: Upgrade OS
   ansible.builtin.include_tasks: os_upgrade.yml
-  when: kali_upgrade
+  when: kali_os_upgrade
 
 - name: Install packages
   ansible.builtin.include_tasks: packages.yml
