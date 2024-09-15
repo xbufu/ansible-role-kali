@@ -29,6 +29,7 @@ kali_base_packages:
   - openjdk-17-dbg
   - openjdk-17-doc
   - jq
+  - kali-root-login
   - libffi-dev
   - libguestfs-tools
   - libmpc-dev
