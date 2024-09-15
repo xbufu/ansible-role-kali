@@ -1,0 +1,12 @@
+---
+- name: Enable VMware customization scripts
+  ansible.builtin.shell: vmware-toolbox-cmd config set deployPkg enable-custom-scripts true
+  when: ansible_facts['virtualization_type'] == "VMware"
+
+- name: Change shell back to bash
+  ansible.builtin.shell: 'chsh -s /bin/bash {{ ansible_user }}'
+
+- name: Remove zsh
+  ansible.builtin.apt:
+    name: zsh
+    state: absent

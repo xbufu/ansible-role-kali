@@ -1,0 +1,50 @@
+---
+- name: Enable VMware customization scripts
+  ansible.builtin.shell: vmware-toolbox-cmd config set deployPkg enable-custom-scripts true
+  when: ansible_facts['virtualization_type'] == "VMware"
+
+- name: Extract rockyou.txt
+  ansible.builtin.shell: gzip -dq /usr/share/wordlists/rockyou.txt.gz
+
+- name: Fix power settings
+  block:
+    - name: Create config folder
+      ansible.builtin.file:
+        path: '{{ ansible_env.HOME }}/.config/xfconf/xfce-perchannel-xml'
+        state: directory
+        mode: '0755'
+
+    - name: Create config file
+      ansible.builtin.copy:
+        dest: '{{ ansible_env.HOME }}/.config/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml'
+        content: |
+          <?xml version="1.0" encoding="UTF-8"?>
+
+          <channel name="xfce4-power-manager" version="1.0">
+            <property name="xfce4-power-manager" type="empty">
+              <property name="power-button-action" type="empty"/>
+              <property name="show-panel-label" type="empty"/>
+              <property name="show-tray-icon" type="bool" value="false"/>
+              <property name="lock-screen-suspend-hibernate" type="bool" value="false"/>
+              <property name="logind-handle-lid-switch" type="bool" value="false"/>
+              <property name="blank-on-ac" type="int" value="0"/>
+              <property name="dpms-on-ac-sleep" type="uint" value="0"/>
+              <property name="dpms-on-ac-off" type="uint" value="0"/>
+              <property name="dpms-enabled" type="bool" value="false"/>
+            </property>
+          </channel>
+        mode: '0755'
+
+- name: Silence PC beep
+  block:
+    - name: Create config directory
+      ansible.builtin.file:
+        path: /etc/modprobe.d
+        state: directory
+        mode: '0755'
+
+    - name: Create config file
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/nobeep.conf
+        content: blacklist pcspkr
+        mode: '0755'

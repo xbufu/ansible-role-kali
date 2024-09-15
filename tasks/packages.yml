@@ -1,0 +1,22 @@
+---
+- name: Get kernel version
+  ansible.builtin.shell: uname -r
+  register: kernel
+
+- name: Install kernel package
+  ansible.builtin.apt:
+    update_cache: true
+    name: 'linux-headers-{{ kernel.stdout_lines[0] }}'
+    state: present
+
+- name: Install base packages
+  ansible.builtin.apt:
+    update_cache: true
+    name: '{{ kali_base_packages }}'
+    state: present
+
+- name: Install tools
+  ansible.builtin.apt:
+    update_cache: true
+    name: '{{ kali_tool_packages }}'
+    state: present

@@ -1,0 +1,15 @@
+---
+- name: Run dist-upgrade
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: dist
+
+- name: Run full-upgrade
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+
+- name: Remove unused packages
+  ansible.builtin.apt:
+    autoremove: true
+    purge: true

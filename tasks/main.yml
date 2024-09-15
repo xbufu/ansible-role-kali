@@ -1,0 +1,18 @@
+---
+- name: Upgrade OS
+  ansible.builtin.include_tasks: os_upgrade.yml
+  when: kali_upgrade
+
+- name: Install packages
+  ansible.builtin.include_tasks: packages.yml
+
+- name: Revert from zsh to bash
+  ansible.builtin.include_tasks: bash.yml
+  when: kali_enable_bash
+
+- name: Enable RDP
+  ansible.builtin.include_tasks: rdp.yml
+  when: kali_enable_rdp
+
+- name: Apply fixes
+  ansible.builtin.include_tasks: fixes.yml

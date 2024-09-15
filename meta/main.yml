@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  role_name: kali
+  author: xbufu
+  description: Kali role.
+  company: Bufu-Security
+  license: license (BSD, MIT)
+  min_ansible_version: "2.1"
+  platforms:
+    - name: Kali
+      versions:
+        - all
+
+  galaxy_tags:
+    - system
+    - development
+    - devops
+    - automation
+    - vm
+    - ansible
+    - security

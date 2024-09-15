@@ -1,0 +1,19 @@
+---
+- name: Install RDP packages
+  ansible.builtin.apt:
+    name:
+      - xorg
+      - xrdp
+    state: present
+
+- name: Downgrade encryption to improve performance
+  ansible.builtin.lineinfile:
+    path: /etc/xrdp/xrdp.ini
+    search_string: 'crypt_level=high'
+    line: crypt_level=none
+
+- name: Enable & start xrdp service
+  ansible.builtin.service:
+    name: xrdp
+    state: started
+    enabled: true
