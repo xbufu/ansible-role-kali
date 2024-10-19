@@ -18,7 +18,6 @@ kali_base_packages:
   - gcc-multilib
   - gcc-mingw-w64-x86-64-win32
   - gdb
-  - gimp
   - git
   - gnupg
   - golang
@@ -51,7 +50,6 @@ kali_base_packages:
   - python2-dev
   - python3-argcomplete
   - python3-dev
-  - python3-distutils
   - python3-setuptools
   - python3-venv
   - rdesktop
