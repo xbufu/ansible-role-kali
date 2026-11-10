@@ -7,6 +7,10 @@ kali_shell: /bin/bash
 # GitHub user whose dotfiles repo chezmoi applies.
 kali_chezmoi_user: xbufu
 kali_enable_rdp: true
+# QTerminal [General] settings for root and kali_user (Kali ships fontSize=10, TerminalTransparency=5).
+kali_qterminal_settings:
+  fontSize: 12
+  TerminalTransparency: 0
 
 kali_base_packages:
   - autogen

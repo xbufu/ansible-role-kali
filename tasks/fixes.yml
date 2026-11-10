@@ -4,7 +4,9 @@
   args:
     creates: /usr/share/wordlists/rockyou.txt
 
-- name: Fix power settings
+- name: Desktop settings per user
+  vars:
+    kali_xfconf_dir: .config/xfce4/xfconf/xfce-perchannel-xml
   block:
     - name: Look up user accounts
       ansible.builtin.getent:
@@ -18,11 +20,11 @@
         owner: '{{ item.0 }}'
         group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
         mode: '0700'
-      loop: "{{ kali_users | product(['.config', '.config/xfce4', '.config/xfce4/xfconf', '.config/xfce4/xfconf/xfce-perchannel-xml']) | list }}"
+      loop: "{{ kali_users | product(['.config', '.config/xfce4', '.config/xfce4/xfconf', kali_xfconf_dir, '.config/qterminal.org']) | list }}"
 
-    - name: Create config file
+    - name: Disable screen blanking and power actions
       ansible.builtin.copy:
-        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml"
+        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/xfce4-power-manager.xml"
         owner: '{{ item }}'
         group: "{{ ansible_facts['getent_passwd'][item][2] }}"
         content: |
@@ -43,6 +45,54 @@
           </channel>
         mode: '0644'
       loop: '{{ kali_users }}'
+
+    # Matches the usual host state, so a VMware focus change does not toggle Num Lock.
+    - name: Turn Num Lock on in the XFCE session
+      ansible.builtin.copy:
+        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/keyboards.xml"
+        owner: '{{ item }}'
+        group: "{{ ansible_facts['getent_passwd'][item][2] }}"
+        content: |
+          <?xml version="1.0" encoding="UTF-8"?>
+
+          <channel name="keyboards" version="1.0">
+            <property name="Default" type="empty">
+              <property name="Numlock" type="bool" value="true"/>
+              <property name="RestoreNumlock" type="bool" value="true"/>
+            </property>
+          </channel>
+        mode: '0644'
+      loop: '{{ kali_users }}'
+
+    # kali-themes force-overwrites /etc/xdg/qterminal.org/qterminal.ini on upgrade, so set it per user.
+    - name: Set QTerminal font size and transparency
+      community.general.ini_file:
+        path: "{{ ansible_facts['getent_passwd'][item.0][4] }}/.config/qterminal.org/qterminal.ini"
+        section: General
+        option: '{{ item.1.key }}'
+        value: '{{ item.1.value }}'
+        no_extra_spaces: true
+        owner: '{{ item.0 }}'
+        group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
+        mode: '0644'
+      loop: "{{ kali_users | product(kali_qterminal_settings | dict2items) | list }}"
+      loop_control:
+        label: '{{ item.0 }} {{ item.1.key }}={{ item.1.value }}'
+
+- name: Turn Num Lock on at the login screen
+  block:
+    - name: Install numlockx
+      ansible.builtin.apt:
+        name: numlockx
+        state: present
+
+    - name: Run numlockx from the LightDM greeter
+      ansible.builtin.copy:
+        dest: /etc/lightdm/lightdm.conf.d/02-numlock.conf
+        content: |
+          [Seat:*]
+          greeter-setup-script=/usr/bin/numlockx on
+        mode: '0644'
 
 - name: Silence PC beep
   block:

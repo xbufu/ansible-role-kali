@@ -19,6 +19,10 @@ See `defaults/main.yml`.
 kali_user: '{{ ansible_user }}'
 # Login shell of root and kali_user, for example /usr/bin/zsh. zsh is never removed.
 kali_shell: /bin/bash
+# QTerminal [General] settings for root and kali_user.
+kali_qterminal_settings:
+  fontSize: 12
+  TerminalTransparency: 0
 # GitHub user whose dotfiles repo chezmoi applies (github.com/<user>/dotfiles).
 kali_chezmoi_user: xbufu
 ```
