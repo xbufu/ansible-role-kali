@@ -1,0 +1,94 @@
+---
+# Burp creates its CA on first start and keeps it in the Java preferences of the user who
+# ran it. Start it once headless as root, export the CA, then hand root's Burp
+# preferences to kali_user so both users intercept with the same CA.
+- name: Check for the exported Burp CA
+  ansible.builtin.stat:
+    path: "{{ kali_burp_ca_path }}"
+  register: kali_burp_ca
+
+- name: Generate the Burp CA and export it
+  when: not kali_burp_ca.stat.exists
+  ansible.builtin.shell: |
+    set -eu
+    tmp=$(mktemp -d)
+    jar=$(ls /usr/share/burpsuite/*.jar | head -n 1)
+    # "y" accepts the licence prompt; stderr off so the sleeper never holds Ansible's pipes.
+    { echo y; sleep 180; } 2>/dev/null | java -Djava.awt.headless=true -jar "$jar" > "$tmp/burp.log" 2>&1 &
+    pid=$!
+    for _ in $(seq 1 90); do
+      curl -fsS -o "$tmp/ca.der" http://127.0.0.1:8080/cert && break
+      sleep 2
+    done
+    kill "$pid" 2>/dev/null || true
+    wait "$pid" 2>/dev/null || true
+    if [ ! -s "$tmp/ca.der" ]; then tail -n 30 "$tmp/burp.log" >&2; exit 1; fi
+    install -d -m 0755 "$(dirname '{{ kali_burp_ca_path }}')"
+    openssl x509 -inform der -in "$tmp/ca.der" -out '{{ kali_burp_ca_path }}'
+    rm -rf "$tmp"
+  args:
+    executable: /bin/bash
+  changed_when: true
+
+- name: Trust the Burp CA system-wide
+  ansible.builtin.command: update-ca-certificates
+  when: not kali_burp_ca.stat.exists
+  changed_when: true
+
+- name: Look up user accounts
+  ansible.builtin.getent:
+    database: passwd
+
+- name: Check for root's Burp preferences
+  ansible.builtin.stat:
+    path: "{{ ansible_facts['getent_passwd']['root'][4] }}/.java/.userPrefs/burp"
+  register: kali_burp_prefs
+
+- name: Share root's Burp preferences (and CA) with the desktop user
+  when:
+    - kali_burp_prefs.stat.isdir | default(false)
+    - kali_user != 'root'
+  vars:
+    kali_user_home: "{{ ansible_facts['getent_passwd'][kali_user][4] }}"
+  block:
+    - name: Create the Java preferences folders
+      ansible.builtin.file:
+        path: "{{ kali_user_home }}/{{ item }}"
+        state: directory
+        owner: "{{ kali_user }}"
+        group: "{{ ansible_facts['getent_passwd'][kali_user][2] }}"
+        mode: '0700'
+      loop:
+        - .java
+        - .java/.userPrefs
+
+    # force: false keeps Burp settings the user already has.
+    - name: Copy the Burp preferences
+      ansible.builtin.copy:
+        src: "{{ kali_burp_prefs.stat.path }}/"
+        dest: "{{ kali_user_home }}/.java/.userPrefs/burp/"
+        remote_src: true
+        force: false
+        owner: "{{ kali_user }}"
+        group: "{{ ansible_facts['getent_passwd'][kali_user][2] }}"
+        mode: preserve
+        directory_mode: '0700'
+
+# Firefox ESR on Debian reads /etc/firefox-esr/policies, upstream Firefox /etc/firefox/policies.
+- name: Create the Firefox policy folders
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - /etc/firefox-esr/policies
+    - /etc/firefox/policies
+
+- name: Configure Firefox (Burp CA, extensions, bookmarks, preferences)
+  ansible.builtin.template:
+    src: firefox-policies.json.j2
+    dest: "{{ item }}/policies.json"
+    mode: '0644'
+  loop:
+    - /etc/firefox-esr/policies
+    - /etc/firefox/policies

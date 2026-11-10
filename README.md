@@ -29,6 +29,18 @@ kali_xkb_plugin_settings:
   display-scale: 50
   group-policy: 0
   caps-lock-indicator: false
+# Burp's CA, exported once on the first run and trusted by the system and Firefox.
+kali_burp_ca_path: /usr/local/share/ca-certificates/burp-ca.crt
+# Firefox policies (/etc/firefox-esr/policies): add-ons (id -> addons.mozilla.org slug),
+# toolbar bookmarks and about:config defaults.
+kali_firefox_extensions:
+  foxyproxy@eric.h.jung: foxyproxy-standard
+  "@testpilot-containers": multi-account-containers
+kali_firefox_bookmarks:
+  - title: HackTricks
+    url: https://hacktricks.wiki/
+kali_firefox_prefs:
+  browser.fixup.domainsuffixwhitelist.htb: true
 # QTerminal [General] settings for root and kali_user.
 kali_qterminal_settings:
   fontSize: 12

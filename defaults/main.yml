@@ -18,6 +18,26 @@ kali_xkb_plugin_settings:
   display-scale: 50
   group-policy: 0
   caps-lock-indicator: false
+# Burp's CA, exported once and trusted by the system and Firefox.
+kali_burp_ca_path: /usr/local/share/ca-certificates/burp-ca.crt
+# Firefox add-ons: extension id -> addons.mozilla.org slug.
+kali_firefox_extensions:
+  foxyproxy@eric.h.jung: foxyproxy-standard
+  "@testpilot-containers": multi-account-containers
+kali_firefox_bookmarks:
+  - title: PayloadsAllTheThings
+    url: https://swisskyrepo.github.io/PayloadsAllTheThings/
+  - title: HackTricks
+    url: https://hacktricks.wiki/
+  - title: RevShells
+    url: https://www.revshells.com/
+  - title: CyberChef
+    url: https://gchq.github.io/CyberChef/
+  - title: Hack The Box
+    url: https://app.hackthebox.com/home
+# about:config defaults; .htb opens as a host instead of a web search.
+kali_firefox_prefs:
+  browser.fixup.domainsuffixwhitelist.htb: true
 kali_qterminal_settings:
   fontSize: 12
   TerminalTransparency: 0

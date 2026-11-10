@@ -1,0 +1,20 @@
+{#- Firefox enterprise policies: https://mozilla.github.io/policy-templates/ -#}
+{%- set extensions = {} -%}
+{%- for id, slug in kali_firefox_extensions.items() -%}
+{%-   set _ = extensions.update({id: {
+        "installation_mode": "normal_installed",
+        "install_url": "https://addons.mozilla.org/firefox/downloads/latest/" ~ slug ~ "/latest.xpi"}}) -%}
+{%- endfor -%}
+{%- set prefs = {} -%}
+{%- for name, value in kali_firefox_prefs.items() -%}
+{%-   set _ = prefs.update({name: {"Value": value, "Status": "default"}}) -%}
+{%- endfor -%}
+{%- set bookmarks = [] -%}
+{%- for b in kali_firefox_bookmarks -%}
+{%-   set _ = bookmarks.append({"Title": b.title, "URL": b.url, "Placement": "toolbar"}) -%}
+{%- endfor -%}
+{{ {"policies": {
+      "Certificates": {"Install": [kali_burp_ca_path]},
+      "ExtensionSettings": extensions,
+      "Bookmarks": bookmarks,
+      "Preferences": prefs}} | to_nice_json(indent=2) }}
