@@ -20,6 +20,11 @@ kali_shell: /bin/bash
 kali_chezmoi_user: xbufu
 ```
 
+Inside a VM, the role installs guest tools on its own: `qemu-guest-agent` and
+`spice-vdagent` on Proxmox/KVM, `open-vm-tools`, `open-vm-tools-desktop` and `fuse3` on
+VMware, with shared folders mounted at `/mnt/hgfs` on boot (needs the
+`ansible.posix` collection). Bare-metal installs skip this.
+
 Dependencies
 ------------
 

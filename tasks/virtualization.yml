@@ -1,0 +1,41 @@
+---
+# Proxmox reports as kvm. Only runs inside a VM, see tasks/main.yml.
+- name: Install QEMU guest tools
+  ansible.builtin.apt:
+    name:
+      - qemu-guest-agent
+      - spice-vdagent
+    state: present
+    update_cache: true
+  when: ansible_facts['virtualization_type'] == "kvm"
+
+- name: Configure VMware guest
+  when: ansible_facts['virtualization_type'] == "VMware"
+  block:
+    - name: Install VMware guest tools
+      ansible.builtin.apt:
+        name:
+          - open-vm-tools
+          - open-vm-tools-desktop
+          - fuse3
+        state: present
+        update_cache: true
+
+    - name: Enable VMware customization scripts
+      ansible.builtin.command: vmware-toolbox-cmd config set deployPkg enable-custom-scripts true
+      changed_when: false
+
+    - name: Create shared folder mount point
+      ansible.builtin.file:
+        path: /mnt/hgfs
+        state: directory
+        mode: '0755'
+
+    # present: fstab only. nofail keeps boot working when shared folders are off in VMware.
+    - name: Mount VMware shared folders at boot
+      ansible.posix.mount:
+        src: .host:/
+        path: /mnt/hgfs
+        fstype: fuse.vmhgfs-fuse
+        opts: defaults,allow_other,nofail
+        state: present

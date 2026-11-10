@@ -1,8 +1,4 @@
 ---
-- name: Enable VMware customization scripts
-  ansible.builtin.shell: vmware-toolbox-cmd config set deployPkg enable-custom-scripts true
-  when: ansible_facts['virtualization_type'] == "VMware"
-
 - name: Extract rockyou.txt
   ansible.builtin.command: gzip -dq /usr/share/wordlists/rockyou.txt.gz
   args:
