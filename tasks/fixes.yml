@@ -100,12 +100,13 @@
 
     # kali-themes force-overwrites /etc/xdg/xfce4/panel/default.xml on upgrade, so edit each
     # user's panel; a user without one starts from that default.
-    - name: Add the keyboard layout indicator next to the clock
+    - name: Add the keyboard layout indicator next to the clock and set its options
       ansible.builtin.script:
         cmd: >-
           xfce_panel_add_xkb.py
           {{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/xfce4-panel.xml
           /etc/xdg/xfce4/panel/default.xml
+          {{ kali_xkb_plugin_settings | to_json | quote }}
         executable: python3
       register: kali_xkb_panel
       changed_when: kali_xkb_panel.stdout_lines | last == 'CHANGED'

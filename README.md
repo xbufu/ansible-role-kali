@@ -22,6 +22,13 @@ kali_shell: /bin/bash
 # Keyboard layouts (first is the default) and the switch shortcut (Super+Space).
 kali_keyboard_layouts: us,de
 kali_keyboard_switch: grp:win_space_toggle
+# Keyboard layout panel indicator; property names and values from xfce4-xkb-plugin
+# (display-type 0 image, 1 text, 2 system; group-policy 0 global, 1 window, 2 application).
+kali_xkb_plugin_settings:
+  display-type: 1
+  display-scale: 50
+  group-policy: 0
+  caps-lock-indicator: false
 # QTerminal [General] settings for root and kali_user.
 kali_qterminal_settings:
   fontSize: 12
