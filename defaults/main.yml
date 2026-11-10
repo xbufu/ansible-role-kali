@@ -47,6 +47,7 @@ kali_base_packages:
   - nmap
   - neovim
   - openssl
+  - pipx
   - plocate
   - proxychains
   - python2
