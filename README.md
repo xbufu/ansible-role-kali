@@ -14,7 +14,10 @@ Role Variables
 See `defaults/main.yml`.
 
 ```yml
-# Login shell of ansible_user, for example /usr/bin/zsh. zsh is never removed.
+# Desktop user. root and this user both get the login shell, dotfiles and
+# xfce power settings. Set it when Ansible connects as root.
+kali_user: '{{ ansible_user }}'
+# Login shell of root and kali_user, for example /usr/bin/zsh. zsh is never removed.
 kali_shell: /bin/bash
 # GitHub user whose dotfiles repo chezmoi applies (github.com/<user>/dotfiles).
 kali_chezmoi_user: xbufu

@@ -1,6 +1,8 @@
 ---
 kali_os_upgrade: true
-# Login shell of ansible_user; bash and zsh stay installed either way.
+# Desktop user. Gets the login shell, dotfiles and power settings, as does root.
+kali_user: '{{ ansible_user }}'
+# Login shell of root and kali_user; bash and zsh stay installed either way.
 kali_shell: /bin/bash
 # GitHub user whose dotfiles repo chezmoi applies.
 kali_chezmoi_user: xbufu

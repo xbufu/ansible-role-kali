@@ -6,5 +6,6 @@
 
 - name: Set login shell
   ansible.builtin.user:
-    name: '{{ ansible_user }}'
+    name: '{{ item }}'
     shell: '{{ kali_shell }}'
+  loop: '{{ kali_users }}'

@@ -1,0 +1,3 @@
+---
+# Accounts that get the login shell, dotfiles and xfce power settings.
+kali_users: "{{ ['root', kali_user] | unique }}"

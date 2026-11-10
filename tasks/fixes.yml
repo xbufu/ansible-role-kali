@@ -5,8 +5,6 @@
     creates: /usr/share/wordlists/rockyou.txt
 
 - name: Fix power settings
-  vars:
-    kali_power_users: "{{ ['root', ansible_user] | unique }}"
   block:
     - name: Look up user accounts
       ansible.builtin.getent:
@@ -20,7 +18,7 @@
         owner: '{{ item.0 }}'
         group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
         mode: '0700'
-      loop: "{{ kali_power_users | product(['.config', '.config/xfconf', '.config/xfconf/xfce-perchannel-xml']) | list }}"
+      loop: "{{ kali_users | product(['.config', '.config/xfconf', '.config/xfconf/xfce-perchannel-xml']) | list }}"
 
     - name: Create config file
       ansible.builtin.copy:
@@ -44,7 +42,7 @@
             </property>
           </channel>
         mode: '0644'
-      loop: '{{ kali_power_users }}'
+      loop: '{{ kali_users }}'
 
 - name: Silence PC beep
   block:

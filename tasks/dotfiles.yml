@@ -4,7 +4,10 @@
     name: chezmoi
     state: present
 
+# Runs as each user so the files land in that home with that owner.
 - name: Apply dotfiles via chezmoi
   ansible.builtin.command: 'chezmoi init --apply {{ kali_chezmoi_user }}'
-  become: false
+  become: true
+  become_user: '{{ item }}'
   changed_when: true
+  loop: '{{ kali_users }}'
