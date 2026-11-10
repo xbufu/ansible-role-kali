@@ -7,6 +7,14 @@
 - name: Desktop settings per user
   vars:
     kali_xfconf_dir: .config/xfce4/xfconf/xfce-perchannel-xml
+    kali_config_dirs:
+      - .config
+      - .config/xfce4
+      - .config/xfce4/xfconf
+      - "{{ kali_xfconf_dir }}"
+      - .config/qterminal.org
+    # One empty variant per layout: "us,de" -> ","
+    kali_keyboard_variants: "{{ kali_keyboard_layouts | regex_replace('[^,]', '') }}"
   block:
     - name: Look up user accounts
       ansible.builtin.getent:
@@ -20,7 +28,7 @@
         owner: '{{ item.0 }}'
         group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
         mode: '0700'
-      loop: "{{ kali_users | product(['.config', '.config/xfce4', '.config/xfce4/xfconf', kali_xfconf_dir, '.config/qterminal.org']) | list }}"
+      loop: "{{ kali_users | product(kali_config_dirs) | list }}"
 
     - name: Disable screen blanking and power actions
       ansible.builtin.copy:
@@ -76,7 +84,7 @@
             <property name="Default" type="empty">
               <property name="XkbDisable" type="bool" value="false"/>
               <property name="XkbLayout" type="string" value="{{ kali_keyboard_layouts }}"/>
-              <property name="XkbVariant" type="string" value="{{ kali_keyboard_layouts | regex_replace('[^,]', '') }}"/>
+              <property name="XkbVariant" type="string" value="{{ kali_keyboard_variants }}"/>
               <property name="XkbOptions" type="empty">
                 <property name="Group" type="string" value="{{ kali_keyboard_switch }}"/>
               </property>
@@ -107,8 +115,10 @@
     regexp: '^{{ item.key }}='
     line: '{{ item.key }}="{{ item.value }}"'
   loop:
-    - { key: XKBLAYOUT, value: "{{ kali_keyboard_layouts }}" }
-    - { key: XKBOPTIONS, value: "{{ kali_keyboard_switch }}" }
+    - key: XKBLAYOUT
+      value: "{{ kali_keyboard_layouts }}"
+    - key: XKBOPTIONS
+      value: "{{ kali_keyboard_switch }}"
   loop_control:
     label: '{{ item.key }}'
 
