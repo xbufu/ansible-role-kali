@@ -1,0 +1,10 @@
+---
+- name: Install login shell
+  ansible.builtin.apt:
+    name: '{{ kali_shell | basename }}'
+    state: present
+
+- name: Set login shell
+  ansible.builtin.user:
+    name: '{{ ansible_user }}'
+    shell: '{{ kali_shell }}'

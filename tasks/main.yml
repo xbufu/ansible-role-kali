@@ -6,9 +6,11 @@
 - name: Install packages
   ansible.builtin.include_tasks: packages.yml
 
-- name: Revert from zsh to bash
-  ansible.builtin.include_tasks: bash.yml
-  when: kali_enable_bash
+- name: Set login shell
+  ansible.builtin.include_tasks: shell.yml
+
+- name: Apply dotfiles
+  ansible.builtin.include_tasks: dotfiles.yml
 
 - name: Enable RDP
   ansible.builtin.include_tasks: rdp.yml

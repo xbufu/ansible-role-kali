@@ -1,6 +1,9 @@
 ---
 kali_os_upgrade: true
-kali_enable_bash: true
+# Login shell of ansible_user; bash and zsh stay installed either way.
+kali_shell: /bin/bash
+# GitHub user whose dotfiles repo chezmoi applies.
+kali_chezmoi_user: xbufu
 kali_enable_rdp: true
 
 kali_base_packages:

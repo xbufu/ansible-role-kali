@@ -1,0 +1,10 @@
+---
+- name: Install chezmoi
+  ansible.builtin.apt:
+    name: chezmoi
+    state: present
+
+- name: Apply dotfiles via chezmoi
+  ansible.builtin.command: 'chezmoi init --apply {{ kali_chezmoi_user }}'
+  become: false
+  changed_when: true
