@@ -4,19 +4,33 @@
   when: ansible_facts['virtualization_type'] == "VMware"
 
 - name: Extract rockyou.txt
-  ansible.builtin.shell: gzip -dq /usr/share/wordlists/rockyou.txt.gz
+  ansible.builtin.command: gzip -dq /usr/share/wordlists/rockyou.txt.gz
+  args:
+    creates: /usr/share/wordlists/rockyou.txt
 
 - name: Fix power settings
+  vars:
+    kali_power_users: "{{ ['root', ansible_user] | unique }}"
   block:
-    - name: Create config folder
+    - name: Look up user accounts
+      ansible.builtin.getent:
+        database: passwd
+
+    # Each level gets the user as owner; a plain recursive create would leave ~/.config owned by root.
+    - name: Create config folders
       ansible.builtin.file:
-        path: '{{ ansible_env.HOME }}/.config/xfconf/xfce-perchannel-xml'
+        path: "{{ ansible_facts['getent_passwd'][item.0][4] }}/{{ item.1 }}"
         state: directory
-        mode: '0755'
+        owner: '{{ item.0 }}'
+        group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
+        mode: '0700'
+      loop: "{{ kali_power_users | product(['.config', '.config/xfconf', '.config/xfconf/xfce-perchannel-xml']) | list }}"
 
     - name: Create config file
       ansible.builtin.copy:
-        dest: '{{ ansible_env.HOME }}/.config/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml'
+        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/.config/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml"
+        owner: '{{ item }}'
+        group: "{{ ansible_facts['getent_passwd'][item][2] }}"
         content: |
           <?xml version="1.0" encoding="UTF-8"?>
 
@@ -33,7 +47,8 @@
               <property name="dpms-enabled" type="bool" value="false"/>
             </property>
           </channel>
-        mode: '0755'
+        mode: '0644'
+      loop: '{{ kali_power_users }}'
 
 - name: Silence PC beep
   block:
@@ -47,4 +62,4 @@
       ansible.builtin.copy:
         dest: /etc/modprobe.d/nobeep.conf
         content: blacklist pcspkr
-        mode: '0755'
+        mode: '0644'
