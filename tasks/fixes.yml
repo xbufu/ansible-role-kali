@@ -64,6 +64,27 @@
         mode: '0644'
       loop: '{{ kali_users }}'
 
+    - name: Add keyboard layouts and the layout switch shortcut
+      ansible.builtin.copy:
+        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/keyboard-layout.xml"
+        owner: '{{ item }}'
+        group: "{{ ansible_facts['getent_passwd'][item][2] }}"
+        content: |
+          <?xml version="1.0" encoding="UTF-8"?>
+
+          <channel name="keyboard-layout" version="1.0">
+            <property name="Default" type="empty">
+              <property name="XkbDisable" type="bool" value="false"/>
+              <property name="XkbLayout" type="string" value="{{ kali_keyboard_layouts }}"/>
+              <property name="XkbVariant" type="string" value="{{ kali_keyboard_layouts | regex_replace('[^,]', '') }}"/>
+              <property name="XkbOptions" type="empty">
+                <property name="Group" type="string" value="{{ kali_keyboard_switch }}"/>
+              </property>
+            </property>
+          </channel>
+        mode: '0644'
+      loop: '{{ kali_users }}'
+
     # kali-themes force-overwrites /etc/xdg/qterminal.org/qterminal.ini on upgrade, so set it per user.
     - name: Set QTerminal font size and transparency
       community.general.ini_file:
@@ -78,6 +99,18 @@
       loop: "{{ kali_users | product(kali_qterminal_settings | dict2items) | list }}"
       loop_control:
         label: '{{ item.0 }} {{ item.1.key }}={{ item.1.value }}'
+
+# Login screen and console; the XFCE session uses keyboard-layout.xml above.
+- name: Set the system keyboard layouts
+  ansible.builtin.lineinfile:
+    path: /etc/default/keyboard
+    regexp: '^{{ item.key }}='
+    line: '{{ item.key }}="{{ item.value }}"'
+  loop:
+    - { key: XKBLAYOUT, value: "{{ kali_keyboard_layouts }}" }
+    - { key: XKBOPTIONS, value: "{{ kali_keyboard_switch }}" }
+  loop_control:
+    label: '{{ item.key }}'
 
 - name: Turn Num Lock on at the login screen
   block:

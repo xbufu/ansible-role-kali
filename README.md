@@ -19,6 +19,9 @@ See `defaults/main.yml`.
 kali_user: '{{ ansible_user }}'
 # Login shell of root and kali_user, for example /usr/bin/zsh. zsh is never removed.
 kali_shell: /bin/bash
+# Keyboard layouts (first is the default) and the switch shortcut (Super+Space).
+kali_keyboard_layouts: us,de
+kali_keyboard_switch: grp:win_space_toggle
 # QTerminal [General] settings for root and kali_user.
 kali_qterminal_settings:
   fontSize: 12
