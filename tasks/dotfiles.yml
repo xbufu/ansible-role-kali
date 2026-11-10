@@ -4,9 +4,10 @@
     name: chezmoi
     state: present
 
-# Runs as each user so the files land in that home with that owner.
+# Runs as each user so the files land in that home with that owner. --force: the dotfiles
+# win over local edits (base_vm rewrites ~/.gitconfig), and chezmoi never waits on a prompt.
 - name: Apply dotfiles via chezmoi
-  ansible.builtin.command: 'chezmoi init --apply {{ kali_chezmoi_user }}'
+  ansible.builtin.command: 'chezmoi init --apply --force {{ kali_chezmoi_user }}'
   become: true
   become_user: '{{ item }}'
   changed_when: true
