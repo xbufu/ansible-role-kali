@@ -9,24 +9,24 @@
 
 - name: Generate the Burp CA and export it
   when: not kali_burp_ca.stat.exists
-  ansible.builtin.shell: |
-    set -eu
-    tmp=$(mktemp -d)
-    jar=$(ls /usr/share/burpsuite/*.jar | head -n 1)
-    # "y" accepts the licence prompt; stderr off so the sleeper never holds Ansible's pipes.
-    { echo y; sleep 180; } 2>/dev/null | java -Djava.awt.headless=true -jar "$jar" > "$tmp/burp.log" 2>&1 &
-    pid=$!
-    for _ in $(seq 1 90); do
-      curl -fsS -o "$tmp/ca.der" http://127.0.0.1:8080/cert && break
-      sleep 2
-    done
-    kill "$pid" 2>/dev/null || true
-    wait "$pid" 2>/dev/null || true
-    if [ ! -s "$tmp/ca.der" ]; then tail -n 30 "$tmp/burp.log" >&2; exit 1; fi
-    install -d -m 0755 "$(dirname '{{ kali_burp_ca_path }}')"
-    openssl x509 -inform der -in "$tmp/ca.der" -out '{{ kali_burp_ca_path }}'
-    rm -rf "$tmp"
-  args:
+  ansible.builtin.shell:
+    cmd: |
+      set -euo pipefail
+      tmp=$(mktemp -d)
+      jar=$(ls /usr/share/burpsuite/*.jar | head -n 1)
+      # "y" accepts the licence prompt; stderr off so the sleeper never holds Ansible's pipes.
+      { echo y; sleep 180; } 2>/dev/null | java -Djava.awt.headless=true -jar "$jar" > "$tmp/burp.log" 2>&1 &
+      pid=$!
+      for _ in $(seq 1 90); do
+        curl -fsS -o "$tmp/ca.der" http://127.0.0.1:8080/cert && break
+        sleep 2
+      done
+      kill "$pid" 2>/dev/null || true
+      wait "$pid" 2>/dev/null || true
+      if [ ! -s "$tmp/ca.der" ]; then tail -n 30 "$tmp/burp.log" >&2; exit 1; fi
+      install -d -m 0755 "$(dirname '{{ kali_burp_ca_path }}')"
+      openssl x509 -inform der -in "$tmp/ca.der" -out '{{ kali_burp_ca_path }}'
+      rm -rf "$tmp"
     executable: /bin/bash
   changed_when: true
 
