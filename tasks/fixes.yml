@@ -13,6 +13,20 @@
       - .config/xfce4/xfconf
       - "{{ kali_xfconf_dir }}"
       - .config/qterminal.org
+    kali_panel_plugins:
+      - plugin: launcher
+        items:
+          - kali-burpsuite.desktop
+        desktop_dir: /usr/share/kali-menu/applications
+        after:
+          plugin: launcher
+          items_any:
+            - firefox-esr.desktop
+            - xfce4-web-browser.desktop
+      - plugin: xkb
+        after:
+          plugin: clock
+        options: "{{ kali_xkb_plugin_settings }}"
     # One empty variant per layout: "us,de" -> ","
     kali_keyboard_variants: "{{ kali_keyboard_layouts | regex_replace('[^,]', '') }}"
   block:
@@ -100,25 +114,28 @@
 
     # kali-themes force-overwrites /etc/xdg/xfce4/panel/default.xml on upgrade, so edit each
     # user's panel; a user without one starts from that default.
-    - name: Add the keyboard layout indicator next to the clock and set its options
+    - name: Add the Burp launcher and the keyboard layout indicator to the panel
       ansible.builtin.script:
         cmd: >-
-          xfce_panel_add_xkb.py
-          {{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/xfce4-panel.xml
+          xfce_panel_plugin.py
+          {{ ansible_facts['getent_passwd'][item.0][4] }}/{{ kali_xfconf_dir }}/xfce4-panel.xml
           /etc/xdg/xfce4/panel/default.xml
-          {{ kali_xkb_plugin_settings | to_json | quote }}
+          {{ item.1 | to_json | quote }}
         executable: python3
-      register: kali_xkb_panel
-      changed_when: kali_xkb_panel.stdout_lines | last == 'CHANGED'
-      loop: '{{ kali_users }}'
+      register: kali_panel_plugin
+      changed_when: kali_panel_plugin.stdout_lines | last == 'CHANGED'
+      loop: "{{ kali_users | product(kali_panel_plugins) | list }}"
+      loop_control:
+        label: "{{ item.0 }} {{ item.1.plugin }} {{ item.1['items'] | default([]) | join(',') }}"
 
     - name: Give each user their panel config
       ansible.builtin.file:
-        path: "{{ ansible_facts['getent_passwd'][item][4] }}/{{ kali_xfconf_dir }}/xfce4-panel.xml"
-        owner: '{{ item }}'
-        group: "{{ ansible_facts['getent_passwd'][item][2] }}"
-        mode: '0644'
-      loop: '{{ kali_users }}'
+        path: "{{ ansible_facts['getent_passwd'][item.0][4] }}/{{ item.1 }}"
+        owner: '{{ item.0 }}'
+        group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
+        state: "{{ 'directory' if item.1.endswith('panel') else 'file' }}"
+        recurse: "{{ item.1.endswith('panel') }}"
+      loop: "{{ kali_users | product([kali_xfconf_dir ~ '/xfce4-panel.xml', '.config/xfce4/panel']) | list }}"
 
     # kali-themes force-overwrites /etc/xdg/qterminal.org/qterminal.ini on upgrade, so set it per user.
     - name: Set QTerminal font size and transparency
