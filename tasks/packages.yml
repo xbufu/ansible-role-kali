@@ -1,12 +1,9 @@
 ---
-- name: Get kernel version
-  ansible.builtin.shell: uname -r
-  register: kernel
-
-- name: Install kernel package
+# Metapackage tracks the newest kernel; headers for the running one may be gone after the upgrade.
+- name: Install kernel headers
   ansible.builtin.apt:
     update_cache: true
-    name: 'linux-headers-{{ kernel.stdout_lines[0] }}'
+    name: "linux-headers-{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
     state: present
 
 - name: Install base packages

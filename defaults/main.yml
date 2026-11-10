@@ -45,7 +45,6 @@ kali_base_packages:
   - nfs-common
   - neovim
   - nmap
-  - neovim
   - openssl
   - pipx
   - plocate
@@ -70,7 +69,7 @@ kali_base_packages:
   - xclip
   - xpdf
   - xxd
-  - libfreerdp-client3-3
+  - freerdp3-x11
 
 kali_tool_packages:
   - amass
