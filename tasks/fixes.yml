@@ -18,11 +18,11 @@
         owner: '{{ item.0 }}'
         group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
         mode: '0700'
-      loop: "{{ kali_users | product(['.config', '.config/xfconf', '.config/xfconf/xfce-perchannel-xml']) | list }}"
+      loop: "{{ kali_users | product(['.config', '.config/xfce4', '.config/xfce4/xfconf', '.config/xfce4/xfconf/xfce-perchannel-xml']) | list }}"
 
     - name: Create config file
       ansible.builtin.copy:
-        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/.config/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml"
+        dest: "{{ ansible_facts['getent_passwd'][item][4] }}/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml"
         owner: '{{ item }}'
         group: "{{ ansible_facts['getent_passwd'][item][2] }}"
         content: |
