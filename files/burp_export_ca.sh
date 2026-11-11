@@ -16,6 +16,8 @@ out=$1
 jar=/usr/share/burpsuite/burpsuite.jar
 prefs="$HOME/.java/.userPrefs/burp/prefs.xml"
 display=:93
+# Private temp dir: Burp temp files left in /tmp by another or a killed Burp would
+# otherwise raise a "Delete old temporary files?" dialog.
 work=$(mktemp -d)
 burp_pid=
 xvfb_pid=
@@ -48,9 +50,17 @@ has_ca() { grep -q 'key="caCert"' "$prefs" 2>/dev/null; }
 # so always arrive from elsewhere first.
 click() { xdotool mousemove 10 10 sleep 0.3 mousemove "$1" "$2" sleep 0.5 click 1; }
 
+# The start wizard's size depends on the theme and font of the user settings; its
+# Next / Start Burp button sits 50x27 px inside the bottom-right corner either way.
+click_wizard_button() {
+  local X Y WIDTH HEIGHT
+  eval "$(xdotool search --onlyvisible --name "Burp Suite Community Edition v" getwindowgeometry --shell 2> /dev/null | grep -E '^(X|Y|WIDTH|HEIGHT)=[0-9]+$')"
+  if [ -n "${WIDTH:-}" ]; then click $((X + WIDTH - 50)) $((Y + HEIGHT - 27)); fi
+}
+
 # 1. Licence and CA. Java flushes preferences every 30 s and on exit, so poll the file.
 if ! has_ca; then
-  { echo y; echo; sleep 150; } 2>/dev/null | java -Djava.awt.headless=true -jar "$jar" > "$work/headless.log" 2>&1 &
+  { echo y; echo; sleep 150; } 2>/dev/null | java -Djava.awt.headless=true -Djava.io.tmpdir="$work" -jar "$jar" > "$work/headless.log" 2>&1 &
   burp_pid=$!
   for _ in $(seq 1 60); do has_ca && break; sleep 2; done
   stop_burp
@@ -62,7 +72,7 @@ Xvfb "$display" -screen 0 1280x1024x24 > "$work/xvfb.log" 2>&1 &
 xvfb_pid=$!
 export DISPLAY=$display
 sleep 2
-java -jar "$jar" --suppress-jre-check --disable-check-for-updates-dialog --use-defaults > "$work/gui.log" 2>&1 &
+java -Djava.io.tmpdir="$work" -jar "$jar" --suppress-jre-check --disable-check-for-updates-dialog --use-defaults > "$work/gui.log" 2>&1 &
 burp_pid=$!
 
 for _ in $(seq 1 60); do
@@ -73,7 +83,7 @@ for _ in $(seq 1 60); do
   case "$titles" in
     *"Temporary Project"*) ;;                                   # main window: wait for the proxy
     *"Delete old temporary files?"*) click 799 617 ;;    # Delete
-    *"Burp Suite Community Edition v"*) click 1020 758 ;; # Next, then Start Burp
+    *"Burp Suite Community Edition v"*) click_wizard_button ;; # Next, then Start Burp
     *)
       if grep -qx 'Burp Suite' <<< "$titles"; then
         click 578 788                       # Continue with Community Edition
@@ -83,6 +93,8 @@ for _ in $(seq 1 60); do
   sleep 3
 done
 stop_burp
+# Burp is killed during startup; without this its next start offers "Safe mode".
+sed -i '/key="burp.suite.StartupInProgress"/d' "$prefs"
 
 if [ ! -s "$work/ca.der" ]; then
   echo "Burp proxy never served its CA; last windows: ${titles:-none}" >&2
