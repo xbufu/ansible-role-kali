@@ -1,3 +1,11 @@
 ---
 # Accounts that get the login shell, dotfiles and xfce power settings.
 kali_users: "{{ ['root', kali_user] | unique }}"
+# Burp user settings from files/burp-user.json, and the BApps they load.
+kali_burp_user_settings: "{{ lookup('ansible.builtin.file', 'burp-user.json') | from_json }}"
+kali_burp_bapps: >-
+  {{ kali_burp_user_settings.user_options.extender.extensions | selectattr('bapp_uuid', 'defined') | list }}
+# Home-relative folders the BApps unpack into, parents first.
+kali_burp_bapp_dirs: >-
+  {{ ['.BurpSuite', '.BurpSuite/bapps']
+     + kali_burp_bapps | map(attribute='bapp_uuid') | map('regex_replace', '^', '.BurpSuite/bapps/') | list }}

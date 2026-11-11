@@ -20,6 +20,12 @@ kali_xkb_plugin_settings:
   caps-lock-indicator: false
 # Burp's CA, exported once and trusted by the system and Firefox.
 kali_burp_ca_path: /usr/local/share/ca-certificates/burp-ca.crt
+# Burp loads <dir>/user.json and <dir>/project.json on every start (from files/burp-*.json).
+kali_burp_config_dir: /etc/burpsuite
+# Jython standalone for Burp's Python extensions; checksum of the Maven Central jar.
+kali_jython_version: 2.7.4
+kali_jython_sha256: 1fba1769effcc8b19f5e10436bc8274a158ce988559f257927c24c73bb137f3c
+kali_jython_jar: /opt/jython/jython-standalone-{{ kali_jython_version }}.jar
 # Firefox add-ons: extension id -> addons.mozilla.org slug.
 kali_firefox_extensions:
   foxyproxy@eric.h.jung: foxyproxy-standard

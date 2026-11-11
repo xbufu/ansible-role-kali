@@ -67,6 +67,104 @@
         mode: preserve
         directory_mode: '0700'
 
+# Jython runs Burp's Python extensions; Burp needs the standalone jar.
+- name: Create the Jython folder
+  ansible.builtin.file:
+    path: "{{ kali_jython_jar | dirname }}"
+    state: directory
+    mode: '0755'
+
+- name: Download Jython standalone
+  vars:
+    kali_jython_maven: https://repo1.maven.org/maven2/org/python/jython-standalone
+  ansible.builtin.get_url:
+    url: "{{ kali_jython_maven }}/{{ kali_jython_version }}/jython-standalone-{{ kali_jython_version }}.jar"
+    dest: "{{ kali_jython_jar }}"
+    checksum: "sha256:{{ kali_jython_sha256 }}"
+    mode: '0644'
+
+# Burp Community only has temporary projects, so the project settings must be loaded on
+# every start; the user settings are loaded the same way. Change them in Burp, export them
+# from its settings dialog and replace files/burp-user.json and files/burp-project.json.
+- name: Create the Burp settings folder
+  ansible.builtin.file:
+    path: "{{ kali_burp_config_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Install the Burp user settings (with the Jython path)
+  ansible.builtin.copy:
+    content: >-
+      {{ kali_burp_user_settings
+         | combine(kali_burp_jython_setting, recursive=True)
+         | to_nice_json(indent=2) }}
+    dest: "{{ kali_burp_config_dir }}/user.json"
+    mode: '0644'
+  vars:
+    kali_burp_jython_setting:
+      user_options:
+        extender:
+          python:
+            location_of_jython_standalone_jar_file: "{{ kali_jython_jar }}"
+
+- name: Install the Burp project settings
+  ansible.builtin.copy:
+    src: burp-project.json
+    dest: "{{ kali_burp_config_dir }}/project.json"
+    mode: '0644'
+
+# The menu entry and the panel launcher run "burpsuite" from PATH, where /usr/local/bin
+# comes before the package's /usr/bin/burpsuite.
+- name: Start Burp with the settings files
+  ansible.builtin.copy:
+    dest: /usr/local/bin/burpsuite
+    mode: '0755'
+    content: |
+      #!/bin/sh
+      # Managed by Ansible (kali role): Burp with the default user and project settings.
+      exec /usr/bin/burpsuite \
+        --user-config-file={{ kali_burp_config_dir }}/user.json \
+        --config-file={{ kali_burp_config_dir }}/project.json "$@"
+
+# Burp does not fetch missing BApps by itself: install the ones the user settings load,
+# at the version (serial) they were exported with, for root and kali_user.
+- name: Create the BApp download folder
+  ansible.builtin.file:
+    path: /var/cache/burp-bapps
+    state: directory
+    mode: '0755'
+
+- name: Download the BApps from the BApp store
+  ansible.builtin.get_url:
+    url: "https://portswigger.net/bappstore/bapps/download/{{ item.bapp_uuid }}/{{ item.bapp_serial_version }}"
+    dest: "/var/cache/burp-bapps/{{ item.bapp_uuid }}-{{ item.bapp_serial_version }}.bapp"
+    mode: '0644'
+  loop: "{{ kali_burp_bapps }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Create the BApp folders
+  ansible.builtin.file:
+    path: "{{ ansible_facts['getent_passwd'][item.0][4] }}/{{ item.1 }}"
+    state: directory
+    owner: "{{ item.0 }}"
+    group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
+    mode: '0700'
+  loop: "{{ kali_users | product(kali_burp_bapp_dirs) | list }}"
+  loop_control:
+    label: "{{ item.0 }} {{ item.1 }}"
+
+- name: Unpack the BApps
+  ansible.builtin.unarchive:
+    src: "/var/cache/burp-bapps/{{ item.1.bapp_uuid }}-{{ item.1.bapp_serial_version }}.bapp"
+    dest: "{{ ansible_facts['getent_passwd'][item.0][4] }}/.BurpSuite/bapps/{{ item.1.bapp_uuid }}"
+    remote_src: true
+    owner: "{{ item.0 }}"
+    group: "{{ ansible_facts['getent_passwd'][item.0][2] }}"
+  loop: "{{ kali_users | product(kali_burp_bapps) | list }}"
+  loop_control:
+    label: "{{ item.0 }} {{ item.1.name }}"
+
 # Firefox ESR on Debian reads /etc/firefox-esr/policies, upstream Firefox /etc/firefox/policies.
 - name: Create the Firefox policy folders
   ansible.builtin.file:
