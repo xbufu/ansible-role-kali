@@ -101,6 +101,66 @@
                     "name":"Param Miner",
                     "output":"ui",
                     "use_ai":false
+                },
+                {
+                    "auto_reload":false,
+                    "bapp_serial_version":36,
+                    "bapp_uuid":"f9bbac8c4acf4aefa4d7dc92a991af2f",
+                    "errors":"ui",
+                    "extension_file":"bapps/f9bbac8c4acf4aefa4d7dc92a991af2f/Autorize.py",
+                    "extension_type":"python",
+                    "loaded":true,
+                    "name":"Autorize",
+                    "output":"ui",
+                    "use_ai":false
+                },
+                {
+                    "auto_reload":false,
+                    "bapp_serial_version":4,
+                    "bapp_uuid":"db57ecbe2cb7446292a94aa6181c9278",
+                    "errors":"ui",
+                    "extension_file":"bapps/db57ecbe2cb7446292a94aa6181c9278/build/libs/content-type-converter-all.jar",
+                    "extension_type":"java",
+                    "loaded":true,
+                    "name":"Content Type Converter",
+                    "output":"ui",
+                    "use_ai":false
+                },
+                {
+                    "auto_reload":false,
+                    "bapp_serial_version":67,
+                    "bapp_uuid":"65033cbd2c344fbabe57ac060b5dd100",
+                    "errors":"ui",
+                    "extension_file":"bapps/65033cbd2c344fbabe57ac060b5dd100/hackvertor-all.jar",
+                    "extension_type":"java",
+                    "loaded":true,
+                    "name":"Hackvertor",
+                    "output":"ui",
+                    "use_ai":false
+                },
+                {
+                    "auto_reload":false,
+                    "bapp_serial_version":10,
+                    "bapp_uuid":"b324647b6efa4b6a8f346389730df160",
+                    "errors":"ui",
+                    "extension_file":"bapps/b324647b6efa4b6a8f346389730df160/build/libs/copy-as-python-requests.jar",
+                    "extension_type":"java",
+                    "loaded":true,
+                    "name":"Copy As Python-Requests",
+                    "output":"ui",
+                    "use_ai":false
+                },
+                {
+                    "auto_reload":false,
+                    "bapp_serial_version":3,
+                    "bapp_uuid":"eb75d39684b845adb457bcb050d1aa1d",
+                    "errors":"ui",
+                    "extension_file":"bapps/eb75d39684b845adb457bcb050d1aa1d/releases/xss-cheatsheet-1.0.jar",
+                    "extension_type":"java",
+                    "loaded":true,
+                    "name":"XSS Cheatsheet",
+                    "output":"ui",
+                    "use_ai":false
                 }
             ],
             "java":{
@@ -108,7 +168,7 @@
             },
             "python":{
                 "folder_for_loading_modules":"",
-                "location_of_jython_standalone_jar_file":""
+                "location_of_jython_standalone_jar_file":"/opt/jython/jython-standalone-2.7.4.jar"
             },
             "ruby":{
                 "location_of_jruby_jar_file":""
