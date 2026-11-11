@@ -126,7 +126,7 @@
       changed_when: kali_panel_plugin.stdout_lines | last == 'CHANGED'
       loop: "{{ kali_users | product(kali_panel_plugins) | list }}"
       loop_control:
-        label: "{{ item.0 }} {{ item.1.plugin }} {{ item.1['items'] | default([]) | join(',') }}"
+        label: "{{ item.0 }} {{ item.1.plugin }} {{ item.1.get('items', []) | join(',') }}"
 
     - name: Give each user their panel config
       ansible.builtin.file:
